@@ -1,0 +1,261 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+
+\graphicspath{{images/}}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{appendixnumberbeamer}
+\usetheme{Berlin}
+\useinnertheme{circles}
+
+%% To remove subsection bar on header:
+%% From: https://tex.stackexchange.com/questions/257394/modifying-headline-in-beamer-berlin
+\setbeamertemplate{headline}
+{%
+  \begin{beamercolorbox}[colsep=1.5pt]{upper separation line head}
+  \end{beamercolorbox}
+  \begin{beamercolorbox}{section in head/foot}
+    \vskip2pt\insertnavigation{\paperwidth}\vskip2pt
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[colsep=1.5pt]{lower separation line head}
+  \end{beamercolorbox}
+}
+
+\title{Missing Variable Interference using Bayesian Approach on a River Network}
+\author{Gaurav Atreya}
+\institute{
+ University of Cincinnati}
+\date{2025 April 25}
+\logo{\includegraphics[width=.05\linewidth]{images/uc-logo.png}}
+
+\usepackage{tikz}
+\usetikzlibrary{tikzmark}
+
+\newcommand{\Node}[3][0]{%
+  \tikz[overlay,remember picture]{\draw (#1 + 0.5, 0.1) circle [radius=0.2] node (#2) {#3};%
+  }}
+
+
+\usepackage[langlinenos]{minted}
+
+\definecolor{codebg}{rgb}{0.90,1,0.90}
+\setminted[jags]{
+  bgcolor=codebg,
+  breaklines=true,
+  linenos,
+  fontsize=\scriptsize,
+  frame         = single                   ,
+  framesep      = 1mm                      ,
+  label         = \textrm{\textbf{JAGS Model}},
+  labelposition = topline}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}{River Network}
+  \begin{columns}
+    \column{0.4 \textwidth}
+    A River Network in consideration have to be a directed tree:
+    \begin{itemize}
+    \item Directed,
+    \item Acyclic,
+    \item Planar, and
+    \item Weekly Connected.
+    \end{itemize}
+
+    \column{0.5 \textwidth}
+    \includegraphics[width=.9\textwidth]{./images/network.pdf}
+
+  \end{columns}
+
+  \vspace{0.5cm}
+    
+    And the variable of interest will be the data at the nodes of the graph.
+  
+\end{frame}
+
+\begin{frame}{Data}
+
+  We have, basin area as independent variable, and monthly average river flows as dependent variables.
+
+  \vspace{0.5cm}
+  
+\begin{adjustbox}{width=0.9\textwidth, totalheight=\textheight-2\baselineskip-2\baselineskip,keepaspectratio}
+  \begin{tabular}{lrrrrrrrrrrrrr}
+    \toprule
+    Nodes Connection & Area (\(x\)) & Jan (\(y_{1}\)) & Feb (\(y_{2}\)) & Mar (\(y_{3}\)) & Apr (\(y_{4}\)) & May (\(y_{5}\)) & Jun (\(y_{6}\)) & Jul (\(y_{7}\)) & Aug (\(y_{8}\)) & Sep (\(y_{9}\)) & Oct (\(y_{10}\)) & Nov (\(y_{11}\)) & Dec (\(y_{12}\)) \\[2mm]
+    \midrule
+\Node[0]{0}{0} & 5879.03 & 3948.21 & 4308.50 & 5258.96 & 4045.11 & 3644.01 & 3022.64 & 2167.57 & 895.97 & 864.30 & 1042.99 & 2134.69 & 2800.08 \\[2mm]
+\Node[1]{1}{1} & 1424.00 & 940.26 & 798.40 & 1032.86 & 818.68 & 673.57 & 592.86 & 504.92 & 273.03 & 217.42 & 270.93 & 391.58 & 584.36 \\[2mm]
+\Node[1]{2}{2} & 325.50 & 200.48 & 178.43 & 243.34 & 110.78 & 168.68 & 122.59 & 94.45 & 27.98 & 27.50 & 89.11 & 130.95 & 130.82 \\[2mm]
+\Node[1]{3}{3} & 169.97 & 188.12 & 167.46 & 149.27 & 136.95 & 98.29 & 95.25 & 54.97 & 16.68 & 18.14 & 23.59 & 69.46 & 99.37 \\[2mm]
+\Node[2]{4}{4} & 491.00 & 282.46 & 297.58 & 399.22 & 405.25 & 301.05 & 265.99 & 212.18 & 162.03 & 144.47 & 131.97 & 159.44 & 208.24 \\[2mm]
+\Node[2]{5}{5} & 262.85 & 287.76 & 236.95 & 241.25 & 203.77 & 148.82 & 124.88 & 76.03 & 21.51 & 20.45 & 39.27 & 84.59 & 156.59 \\[2mm]
+\Node[0]{6}{6} & 4205.12 & 3278.40 & 2735.97 & 3662.76 & 2914.60 & 2423.52 & 1865.82 & 1399.69 & 583.97 & 502.82 & 683.64 & 1342.70 & 2164.47 \\[2mm]
+\Node[1]{7}{7} & 463.92 & 420.57 & 430.10 & 380.53 & 338.39 & 224.30 & 222.86 & 154.87 & 42.70 & 33.20 & 55.62 & 175.14 & 278.39 \\[2mm]
+\Node[1]{8}{8} & 2549.06 & 1762.57 & 1648.17 & 2002.93 & 1691.38 & 1318.28 & 1061.59 & 786.82 & 260.76 & 194.90 & 335.59 & 685.14 & 1085.85 \\[2mm]
+\Node[1]{9}{9} & 1469.51 & 1258.55 & 1145.75 & 1159.66 & 976.74 & 781.17 & 672.80 & 463.49 & 156.88 & 151.83 & 237.71 & 456.76 & 756.86 \\[2mm]
+\Node[0]{10}{10} & 1278.31 & 1162.95 & 941.94 & 1198.19 & 896.57 & 783.85 & 645.10 & 445.42 & 134.08 & 128.83 & 188.21 & 549.45 & 698.18 \\[2mm]
+\Node[0]{11}{11} & 1019.56 & 737.91 & 643.45 & 844.81 & 657.73 & 525.16 & 414.88 & 379.01 & 102.24 & 61.91 & 124.68 & 400.98 & 495.05 \\[2mm]
+\Node[0]{12}{12} & 98.27 & 109.91 & 91.95 & 85.99 & 76.06 & 56.28 & 47.24 & 25.44 & 9.63 & 8.72 & 14.54 & 32.34 & 60.82 \\[2mm]
+\bottomrule
+  \end{tabular}
+  
+\tikz[overlay, remember picture]{
+  \path[->] (1) edge (0);
+  \path[->] (2) edge (1);
+  \path[->] (3) edge (2);
+  \path[->] (4) edge (1);
+  \path[->] (5) edge (4);
+  \path[->] (6) edge (0);
+  \path[->] (7) edge (6);
+  \path[->] (8) edge (6);
+  \path[->] (9) edge (8);
+  \path[->] (10) edge (6);
+  \path[->] (11) edge (10);
+  \path[->] (12) edge (11);
+}
+\end{adjustbox}
+
+\vspace{0.5cm}
+
+{
+  \small
+  \color{gray}
+  Data downloaded from United States Geological Survey (USGS) National Water Information System (NWIS) and aggregated. For Scioto River at Columbus, Ohio.
+}
+\end{frame}
+
+\begin{frame}{Data Visualized}
+
+  Looking at the data, we can see the values vary between months. But there is overall linear relation between area (\(x\)) and streamflow (\(y_j\)).
+
+  \begin{columns}
+    \column{0.6\textwidth}
+    \includegraphics[width=.9\textwidth]{./images/monthly-plot.png}
+    
+    \column{0.35\textwidth}
+    \includegraphics[width=\textwidth]{./images/monthly-scatter.png}
+    
+  \end{columns}
+  
+\end{frame}
+
+\section{Methods}
+
+\begin{frame}{Possible Models}
+
+  Given streamflow at month \(j\) on node \(i\) is \(y_{i,j}\) and the area at node \(i\) is \(x_{i}\).
+
+  \begin{itemize}
+  \item Linear Model with different coefficient for each month,
+    \begin{equation*}
+      y_{i,j} = \beta_{j} \times x_{i} + \epsilon_{i,j}
+    \end{equation*}
+    
+  \item Linear Model with correlation to Input Nodes
+    \begin{equation*}
+      y_{i,j} = (\beta + \alpha \times i_{i,j}) \times x_{i,j} + \epsilon_{i,j}
+    \end{equation*}
+    
+  \item Linear Model with correlation to Output Node
+    \begin{equation*}
+      y_{i,j} = (\beta + \alpha \times o_{i,j}) \times x_{i,j} + \epsilon_{i,j}
+    \end{equation*}
+
+  \item Correlation with Both ({\color{red}Abandoned} as RJAGS can't handle circular dependency)
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[containsverbatim]{Multiple Linear Model}
+  
+\begin{minted}{jags}
+for (j in 1:m) {
+  for (i in 1:n) {
+    y[i,j] ~ dnorm(x[i] * beta[j], 1 / sigma^2)
+  }
+  beta[j] ~ dunif(0, 5)
+}
+alpha <- 0
+sigma ~ dgamma(1, gamma0)
+\end{minted}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Linear Model with Output}
+\begin{minted}{jags}
+for (j in 1:m) {
+  for (i in 1:n) {
+    y[i, j] ~ dnorm(x[i] * (beta + alpha * z[i, j]), 1 / sigma^2)
+  }
+  z[1, j] <- 0
+  z[2, j] <- y[1, j] / x[1]
+  z[3, j] <- y[2, j] / x[2]
+  z[4, j] <- y[3, j] / x[3]
+  z[5, j] <- y[2, j] / x[2]
+  z[6, j] <- y[5, j] / x[5]
+  z[7, j] <- y[1, j] / x[1]
+  z[8, j] <- y[7, j] / x[7]
+  z[9, j] <- y[7, j] / x[7]
+  z[10, j] <- y[9, j] / x[9]
+  z[11, j] <- y[7, j] / x[7]
+  z[12, j] <- y[11, j] / x[11]
+  z[13, j] <- y[12, j] / x[12]
+}
+alpha ~ dunif(0, 1)
+beta ~ dunif(0, 1)
+sigma ~ dgamma(1, gamma0)
+\end{minted}
+\end{frame}
+
+
+\begin{frame}[containsverbatim]{Linear Model with Inputs}
+\begin{minted}{jags}
+for (j in 1:m) {
+  for (i in 1:n) {
+    y[i, j] ~ dnorm(x[i] * (beta + alpha * z[i, j]), 1 / sigma^2)
+  }
+  z[1, j] <- (y[2, j] + y[7, j]) / (x[2] + x[7])
+  z[2, j] <- (y[3, j] + y[5, j]) / (x[3] + x[5])
+  z[3, j] <- (y[4, j]) / (x[4])
+  z[4, j] <- 0
+  z[5, j] <- (y[6, j]) / (x[6])
+  z[6, j] <- 0
+  z[7, j] <- (y[8, j] + y[9, j] + y[11, j]) / (x[8] + x[9] + x[11])
+  z[8, j] <- 0
+  z[9, j] <- (y[10, j]) / (x[10])
+  z[10, j] <- 0
+  z[11, j] <- (y[12, j]) / (x[12])
+  z[12, j] <- (y[13, j]) / (x[13])
+  z[13, j] <- 0
+}
+alpha ~ dunif(0, 1)
+beta ~ dunif(0, 1)
+sigma ~ dgamma(1, gamma0)
+\end{minted}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}{Plots}
+
+\end{frame}
+
+\section{Discussions}
+
+\begin{frame}{Comparision}
+
+\end{frame}
+
+\end{document}

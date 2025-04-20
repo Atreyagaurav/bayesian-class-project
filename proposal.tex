@@ -1,0 +1,96 @@
+% Created 2025-03-25 Tue 17:39
+% Intended LaTeX compiler: pdflatex
+\documentclass[twoside,12pt,a4paper]{article}
+
+\usepackage[
+  textwidth=14cm,
+  textheight=22cm,
+  hratio=1:1,
+  vratio=1:1,
+  heightrounded,
+]{geometry}
+\geometry{
+  left=20mm,
+  top=20mm,
+  right=20mm,
+  bottom = 20mm,
+}
+\usepackage{vwcol}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+
+\usepackage{ucs}
+%% for greek unicode letters to work directly
+\usepackage{fontspec}
+\usepackage[Greek]{ucharclasses}
+\setTransitionsForGreek{\begingroup\fontspec{DejaVu Sans}[Scale=MatchLowercase]}{\endgroup}
+
+\usepackage{tikz}
+\usetikzlibrary{tikzmark}
+
+\newcommand{\Node}[3][0]{%
+  \tikz[overlay,remember picture]{\draw (#1 + 0.5, 0.1) circle [radius=0.2] node (#2) {#3};%
+  }}
+
+\usepackage{graphicx}
+\author{Gaurav Atreya}
+\date{\today}
+\title{Missing Variable Interference using Bayesian Approach on a Network}
+
+\begin{document}
+\begin{center}
+\textbf{Missing Variable Interference using Bayesian Approach on a Network}
+
+Gaurav Atreya
+\end{center}
+
+The proposal consists of an idea to use bayesian method on a network. We will take a river network, and try to fit a linear regression on the data points in the network, while also considering the spatial dependencies.
+
+\begin{vwcol}[widths={0.5,0.4},
+    sep=.8cm, justify=flush,rule=0pt,indent=1em]
+  The network will be acyclic, planer and connected graph (tree) representing a river system. And the variable of interest will be the data at the nodes of the graph.
+
+  The figure on the right shows how the actual nodes are positioned on a river, and the table below shows their representation in a network model.
+  
+\includegraphics[width=.5\linewidth]{./images/network.pdf}
+\end{vwcol}
+
+  Here the variable of interest at node \(i\) is \(y_i\) while there is independent variable \(X_i\), and we assume there is dependencies between the variables \(y\) based on the nodes' connections. Given, \(\theta_p\) as the parameter(s) for the model.
+  
+\vspace{0.3cm}
+\begin{tabular}{lll}
+  \textbf{Network} & \textbf{Name} & \textbf{Expression} \\[2mm]
+  \Node[0]{7}{7} & Node 7 & \(y_7 = f(\theta_p, X_7, X_6, y_6)\) \\[2mm]
+  \Node[0]{6}{6} & Node 6 & \(y_6 = f(\theta_p, X_6, X_7, X_4, y_7, y_4)\) \\[2mm]
+  \Node[1]{5}{5} & Node 5 & \(y_5 = f(\theta_p, X_5, X_4, y_4)\) \\[2mm]
+  \Node[0]{4}{4} & Node 4 & \(y_4 = f(\theta_p, X_4, X_6, X_1, y_6, y_1)\) \\[2mm]
+  \Node[1]{3}{3} & Node 3 & \(y_3 = f(\theta_p, X_3, X_2, y_2)\) \\[2mm]
+  \Node[1]{2}{2} & Node 2 & \(y_2 = f(\theta_p, X_2, X_3, X_1, y_3, y_1)\) \\[2mm]
+  \Node[0]{1}{1} & Node 1 & \(y_1 = f(\theta_p, X_1, X_4, X_2, X_0, y_4, y_2, y_0)\) \\[2mm]
+  \Node[0]{0}{0} & Node 0 & \(y_0 = f(\theta_p, X_0, X_1, y_1)\) 
+\end{tabular}
+
+\tikz[overlay, remember picture]{
+  \path[<->] (7) edge (6);
+  \path[<->] (6) edge (4);
+  \path[<->] (5) edge (4);
+  \path[<->] (4) edge (1);
+  \path[<->] (3) edge (2);
+  \path[<->] (2) edge (1);
+  \path[<->] (1) edge (0);
+}
+
+That is \(y_0\) and \(y_1\) are directly dependent, while \(y_2\) is dependent on \(y_0\) through \(y_1\). While each \(y_i\) depend on its own \(X_i\). I would like the data (\(y\)) to be a timeseries, but that again comes with its own complications, so I might do a simple node attributes (like area, length, etc) for this. I will probably try a few different variables and see which one works, or show a comparision.
+
+Assuming \(N\) is the set of neighbor nodes to node \(i\). The function could be written as:
+
+\begin{align*}
+  y_i &= f(\theta_p, X_i, X_j \hdots, y_j \hdots {\text{ for } j \in N})\\
+  \frac{y_i}{X_i} &= \sum_{i \in N} \biggl( \beta_{i,j} \frac{y_j}{X_j}\biggr) + \epsilon_i 
+\end{align*}
+
+where, \(\epsilon_i \sim N(0, \sigma^2)\). So we have 8 independent variables, 8 dependent variables, and 15 model parameters for this example network. I'm also thinking of trying different equations here, a way to be able to see which model (equation) best describes the relationship can be useful as well. Also adding a hierarchical model with \(\beta_{i,j}\) depend on another variable.
+
+The objectives here is to have a model that can formalize the relationships between the variables at different nodes, so that if it is unknown at any of the node it can be calculated using the other nodes. Or be able to interpolate the value continuously throughout the network with a confidence bounds.
+\end{document}
