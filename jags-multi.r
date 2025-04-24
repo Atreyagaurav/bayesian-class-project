@@ -2,7 +2,7 @@ library(ggplot2)
 library(rjags)
 
 
-df <- read.csv('annual-means.csv')
+df <- read.csv('csvs/annual-means.csv')
 
 y_cols = mapply(function(y) sprintf("y_%d", y), 2005:2024)
 x <- df$area
@@ -17,7 +17,7 @@ data.bayes <- list(y = y,
                    m = m,
                    n = n)
 
-model.smpl <- jags.model(file = sprintf("%s.jags", model),
+model.smpl <- jags.model(file = sprintf("jags/%s.jags", model),
                          data = data.bayes)
 
 adapt(object = model.smpl,
@@ -93,9 +93,13 @@ names(intervals) <- c("lower", "q1", "median", "q3", "upper")
 
 intervals$area <- axis
 
-pdf(sprintf("images/%s-mainb.pdf", model), width=7, height=4)
-ggplot(data=intervals) + geom_ribbon(mapping=aes(x=area, ymin=lower, ymax=upper), alpha = 0.3) + geom_line(mapping=aes(x=area, y=median), color="blue") + geom_point(data=main.xy, mapping=aes(x=area, y=value), color="red")
-dev.off()
+
+if (model == "linear") {
+    ## currently only supported for linear, other models need more thoughts
+    pdf(sprintf("images/%s-mainb.pdf", model), width=7, height=4)
+    ggplot(data=intervals) + geom_ribbon(mapping=aes(x=area, ymin=lower, ymax=upper), alpha = 0.3) + geom_line(mapping=aes(x=area, y=median), color="blue") + geom_point(data=main.xy, mapping=aes(x=area, y=value), color="red")
+    dev.off()
+}
 
 area <- x[7]
 sf <- y[7,]
@@ -136,6 +140,9 @@ if (model == "linear") {
     output.intervals <- intervals
 }
 
+
+## only to be run after running the above code for all 3 models
+## there is no loop, you have to run them manually
 linear.intervals$model <- "linear"
 inputs.intervals$model <- "inputs"
 output.intervals$model <- "output"
