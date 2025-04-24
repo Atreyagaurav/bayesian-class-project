@@ -1,0 +1,12 @@
+model {
+# sampling distribution
+for (j in 1:m) {
+  for (i in 1:n) {
+    y[i,j] ~ dnorm(x[i] * beta, 1 / sigma^2)
+  }
+}
+# parameter priors
+alpha <- 0
+beta ~ dunif(0, 5)
+sigma ~ dgamma(1, gamma0)
+}

@@ -82,33 +82,40 @@
   \vspace{0.5cm}
     
     And the variable of interest will be the data at the nodes of the graph.
-  
+
+    \vfill
+    \pause
+    
+    {\color{blue}Key Terms}: Node, Output, Inputs, Leaf, and Outlet.
+    
 \end{frame}
 
 \begin{frame}{Data}
 
-  We have, basin area as independent variable, and monthly average river flows as dependent variables.
+  We have, basin area as independent variable, and annual average river flows as dependent variables.
 
   \vspace{0.5cm}
-  
+
+  \begin{columns}
+    \column{0.5\textwidth}
 \begin{adjustbox}{width=0.9\textwidth, totalheight=\textheight-2\baselineskip-2\baselineskip,keepaspectratio}
-  \begin{tabular}{lrrrrrrrrrrrrr}
+  \begin{tabular}{lrrcrr}
     \toprule
-    Nodes Connection & Area (\(x\)) & Jan (\(y_{1}\)) & Feb (\(y_{2}\)) & Mar (\(y_{3}\)) & Apr (\(y_{4}\)) & May (\(y_{5}\)) & Jun (\(y_{6}\)) & Jul (\(y_{7}\)) & Aug (\(y_{8}\)) & Sep (\(y_{9}\)) & Oct (\(y_{10}\)) & Nov (\(y_{11}\)) & Dec (\(y_{12}\)) \\[2mm]
+    Nodes Connection & Area (\(x\)) & 2005 (\(y_{1}\)) & ... & 2023 (\(y_{19}\)) & 2024 (\(y_{20}\))\\[2mm]
     \midrule
-\Node[0]{0}{0} & 5879.03 & 3948.21 & 4308.50 & 5258.96 & 4045.11 & 3644.01 & 3022.64 & 2167.57 & 895.97 & 864.30 & 1042.99 & 2134.69 & 2800.08 \\[2mm]
-\Node[1]{1}{1} & 1424.00 & 940.26 & 798.40 & 1032.86 & 818.68 & 673.57 & 592.86 & 504.92 & 273.03 & 217.42 & 270.93 & 391.58 & 584.36 \\[2mm]
-\Node[1]{2}{2} & 325.50 & 200.48 & 178.43 & 243.34 & 110.78 & 168.68 & 122.59 & 94.45 & 27.98 & 27.50 & 89.11 & 130.95 & 130.82 \\[2mm]
-\Node[1]{3}{3} & 169.97 & 188.12 & 167.46 & 149.27 & 136.95 & 98.29 & 95.25 & 54.97 & 16.68 & 18.14 & 23.59 & 69.46 & 99.37 \\[2mm]
-\Node[2]{4}{4} & 491.00 & 282.46 & 297.58 & 399.22 & 405.25 & 301.05 & 265.99 & 212.18 & 162.03 & 144.47 & 131.97 & 159.44 & 208.24 \\[2mm]
-\Node[2]{5}{5} & 262.85 & 287.76 & 236.95 & 241.25 & 203.77 & 148.82 & 124.88 & 76.03 & 21.51 & 20.45 & 39.27 & 84.59 & 156.59 \\[2mm]
-\Node[0]{6}{6} & 4205.12 & 3278.40 & 2735.97 & 3662.76 & 2914.60 & 2423.52 & 1865.82 & 1399.69 & 583.97 & 502.82 & 683.64 & 1342.70 & 2164.47 \\[2mm]
-\Node[1]{7}{7} & 463.92 & 420.57 & 430.10 & 380.53 & 338.39 & 224.30 & 222.86 & 154.87 & 42.70 & 33.20 & 55.62 & 175.14 & 278.39 \\[2mm]
-\Node[1]{8}{8} & 2549.06 & 1762.57 & 1648.17 & 2002.93 & 1691.38 & 1318.28 & 1061.59 & 786.82 & 260.76 & 194.90 & 335.59 & 685.14 & 1085.85 \\[2mm]
-\Node[1]{9}{9} & 1469.51 & 1258.55 & 1145.75 & 1159.66 & 976.74 & 781.17 & 672.80 & 463.49 & 156.88 & 151.83 & 237.71 & 456.76 & 756.86 \\[2mm]
-\Node[0]{10}{10} & 1278.31 & 1162.95 & 941.94 & 1198.19 & 896.57 & 783.85 & 645.10 & 445.42 & 134.08 & 128.83 & 188.21 & 549.45 & 698.18 \\[2mm]
-\Node[0]{11}{11} & 1019.56 & 737.91 & 643.45 & 844.81 & 657.73 & 525.16 & 414.88 & 379.01 & 102.24 & 61.91 & 124.68 & 400.98 & 495.05 \\[2mm]
-\Node[0]{12}{12} & 98.27 & 109.91 & 91.95 & 85.99 & 76.06 & 56.28 & 47.24 & 25.44 & 9.63 & 8.72 & 14.54 & 32.34 & 60.82 \\[2mm]
+\Node[0]{0}{0}   & 5879.03 & 2180.76 & \(\hdots\) & 2124.50 & 2386.84 \\[2mm]
+\Node[1]{1}{1}   & 1424.00 &  784.83 & \(\hdots\) &  479.92 & 498.48 \\[2mm]
+\Node[1]{2}{2}   &  325.50 &  155.46 & \(\hdots\) &  114.27 & 119.66 \\[2mm]
+\Node[1]{3}{3}   &  169.97 &   90.01 & \(\hdots\) &   66.32 & 72.78 \\[2mm]
+\Node[2]{4}{4}   &  491.00 &  302.54 & \(\hdots\) &  188.94 & 252.79 \\[2mm]
+\Node[2]{5}{5}   &  262.85 &   81.56 & \(\hdots\) &  117.81 & 117.91 \\[2mm]
+\Node[0]{6}{6}   & 4205.12 & 2497.53 & \(\hdots\) & 1488.69 & 1603.67 \\[2mm]
+\Node[1]{7}{7}   &  463.92 &  315.63 & \(\hdots\) &  152.38 & 180.38 \\[2mm]
+\Node[1]{8}{8}   & 2549.06 & 1535.94 & \(\hdots\) &  835.36 & 1013.28 \\[2mm]
+\Node[1]{9}{9}   & 1469.51 &  843.90 & \(\hdots\) &  420.13 & 544.08 \\[2mm]
+\Node[0]{10}{10} & 1278.31 &  743.12 & \(\hdots\) &  507.92 & 623.50 \\[2mm]
+\Node[0]{11}{11} & 1019.56 &  528.46 & \(\hdots\) &  385.48 & 420.40 \\[2mm]
+\Node[0]{12}{12} &   98.27 &   60.85 & \(\hdots\) &   41.15 & 36.50 \\[2mm]
 \bottomrule
   \end{tabular}
   
@@ -128,27 +135,49 @@
 }
 \end{adjustbox}
 
-\vspace{0.5cm}
-
+    \column{0.5\textwidth}
 {
   \small
   \color{gray}
-  Data downloaded from United States Geological Survey (USGS) National Water Information System (NWIS) and aggregated. For Scioto River at Columbus, Ohio.
+Data downloaded from United States Geological Survey (USGS) National Water Information System (NWIS) and aggregated. For Scioto River at Columbus, Ohio.
 }
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Data Visualized}
 
-  Looking at the data, we can see the values vary between months. But there is overall linear relation between area (\(x\)) and streamflow (\(y_j\)).
+  Looking at the data, we can see the values vary between years.
 
   \begin{columns}
-    \column{0.6\textwidth}
-    \includegraphics[width=.9\textwidth]{./images/monthly-plot.png}
+    \column{0.5\textwidth}
+    \includegraphics[width=\textwidth]{./images/annual-plot.png}
+    \pause
     
-    \column{0.35\textwidth}
-    \includegraphics[width=\textwidth]{./images/monthly-scatter.png}
-    
+    \column{0.47\textwidth}
+    \includegraphics[width=\textwidth]{./images/annual-scatter.png}
   \end{columns}
+  
+     But there is overall linear relation between area (\(x\)) and streamflow (\(y_j\)).
+  
+\end{frame}
+
+\begin{frame}{Physics Behind the Process}
+\begin{columns}
+  \column{0.45\textwidth}
+  \includegraphics[width=\textwidth]{./images/concept.pdf}
+
+  \pause
+  
+  \column{0.45\textwidth}
+  \includegraphics[width=\textwidth]{./images/bucket1.pdf}
+  
+  \pause
+
+  \includegraphics[width=\textwidth]{./images/bucket2.pdf}
+  
+\end{columns}
+
+  $\frac{y_1}{x_1} = \frac{y_2}{x_2} = \beta$
   
 \end{frame}
 
@@ -159,7 +188,7 @@
   Given streamflow at month \(j\) on node \(i\) is \(y_{i,j}\) and the area at node \(i\) is \(x_{i}\).
 
   \begin{itemize}
-  \item Linear Model with different coefficient for each month,
+  \item Linear Model with different coefficient for each year,
     \begin{equation*}
       y_{i,j} = \beta_{j} \times x_{i} + \epsilon_{i,j}
     \end{equation*}
@@ -179,77 +208,94 @@
 
 \end{frame}
 
-\begin{frame}[containsverbatim]{Multiple Linear Model}
-  
-\begin{minted}{jags}
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i,j] ~ dnorm(x[i] * beta[j], 1 / sigma^2)
-  }
-  beta[j] ~ dunif(0, 5)
-}
-alpha <- 0
-sigma ~ dgamma(1, gamma0)
-\end{minted}
+\begin{frame}[containsverbatim]{Hierarchical Linear Model}
+
+  We have 20 linear coefficients (\(\beta_1,\hdots,\beta_{20}\)) for each year that depend on two parameters (\(\beta, \tau\)) and error (\(\sigma\)).
+
+  Equation:
+    \begin{equation*}
+      y_{i,j} = \beta_{j} \times x_{i} + \epsilon_{i,j}
+    \end{equation*}
+
+    \vspace{0.2cm}
+    
+\inputminted{jags}{linear.jags}
 \end{frame}
 
-\begin{frame}[containsverbatim]{Linear Model with Output}
-\begin{minted}{jags}
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i, j] ~ dnorm(x[i] * (beta + alpha * z[i, j]), 1 / sigma^2)
-  }
-  z[1, j] <- 0
-  z[2, j] <- y[1, j] / x[1]
-  z[3, j] <- y[2, j] / x[2]
-  z[4, j] <- y[3, j] / x[3]
-  z[5, j] <- y[2, j] / x[2]
-  z[6, j] <- y[5, j] / x[5]
-  z[7, j] <- y[1, j] / x[1]
-  z[8, j] <- y[7, j] / x[7]
-  z[9, j] <- y[7, j] / x[7]
-  z[10, j] <- y[9, j] / x[9]
-  z[11, j] <- y[7, j] / x[7]
-  z[12, j] <- y[11, j] / x[11]
-  z[13, j] <- y[12, j] / x[12]
-}
-alpha ~ dunif(0, 1)
-beta ~ dunif(0, 1)
-sigma ~ dgamma(1, gamma0)
-\end{minted}
+\begin{frame}{Linear with Output}
+
+  Here we have only 2 parameters: Linear coefficient \(\beta\), and error \(\sigma\).
+
+    \begin{equation*}
+      y_{i,j} = (\beta \times o_{i,j}) \times x_{i} + \epsilon_{i,j}
+    \end{equation*}
+
+    Here, \(o_{i,j} = y_{k,j} / x_k\) where node \(k\) is the output of node \(i\)
+\end{frame}
+
+\begin{frame}[containsverbatim]{Linear with Output}
+
+  \inputminted{jags}{output.jags}
 \end{frame}
 
 
-\begin{frame}[containsverbatim]{Linear Model with Inputs}
-\begin{minted}{jags}
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i, j] ~ dnorm(x[i] * (beta + alpha * z[i, j]), 1 / sigma^2)
-  }
-  z[1, j] <- (y[2, j] + y[7, j]) / (x[2] + x[7])
-  z[2, j] <- (y[3, j] + y[5, j]) / (x[3] + x[5])
-  z[3, j] <- (y[4, j]) / (x[4])
-  z[4, j] <- 0
-  z[5, j] <- (y[6, j]) / (x[6])
-  z[6, j] <- 0
-  z[7, j] <- (y[8, j] + y[9, j] + y[11, j]) / (x[8] + x[9] + x[11])
-  z[8, j] <- 0
-  z[9, j] <- (y[10, j]) / (x[10])
-  z[10, j] <- 0
-  z[11, j] <- (y[12, j]) / (x[12])
-  z[12, j] <- (y[13, j]) / (x[13])
-  z[13, j] <- 0
-}
-alpha ~ dunif(0, 1)
-beta ~ dunif(0, 1)
-sigma ~ dgamma(1, gamma0)
-\end{minted}
+\begin{frame}[containsverbatim]{Linear with Inputs}
+  \inputminted{jags}{inputs.jags}
 \end{frame}
 
 \section{Results}
 
-\begin{frame}{Plots}
+\begin{frame}{Single Linear Model}
 
+  This is basically: $y_{i,j} = \beta \times x_{i} + \epsilon_{i,j}$
+
+  That is, no hierchical model all years have same \(\beta\).
+  
+  \begin{columns}
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/basic-beta.pdf}
+    \pause
+    
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/basic-sigma.pdf}
+  \end{columns}
+
+  This acts as a benchmark for our other models.
+\end{frame}
+
+\begin{frame}{Linear}
+  \begin{columns}
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/linear-beta.pdf}
+    \pause
+    
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/linear-sigma.pdf}
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}{Output}
+  \begin{columns}
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/output-beta.pdf}
+    \pause
+    
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/output-sigma.pdf}
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}{Inputs}
+  \begin{columns}
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/inputs-beta.pdf}
+    \pause
+    
+    \column{0.45\textwidth}
+    \includegraphics[width=\textwidth]{./images/inputs-sigma.pdf}
+  \end{columns}
 \end{frame}
 
 \section{Discussions}

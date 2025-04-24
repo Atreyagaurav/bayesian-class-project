@@ -2,116 +2,146 @@ library(ggplot2)
 library(rjags)
 
 
-df <- read.csv('node-attrs.csv')
+df <- read.csv('annual-means.csv')
 
-## x <- (df$area - mean(df$area)) / sd(df$area)
-## y <- (df$sf_mean - mean(df$sf_mean)) / sd(df$sf_mean)
+y_cols = mapply(function(y) sprintf("y_%d", y), 2005:2024)
 x <- df$area
-y <- df[(length(df)-11):length(df)]
+y <- df[y_cols]
 n <- dim(y)[1]
 m <- dim(y)[2]
 
-model.input="
-model {
-# sampling distribution
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i,j] ~ dnorm(x[i] * (beta + alpha * z[i,j]), 1 / sigma^2)
-  }
-  # connection to inputs
-  z[1,j] <- (y[2,j] + y[7,j]) / (x[2] + x[7])
-  z[2,j] <- (y[3,j] + y[5,j]) / (x[3] + x[5])
-  z[3,j] <- (y[4,j]) / (x[4])
-  z[4,j] <- 0
-  z[5,j] <- (y[6,j]) / (x[6])
-  z[6,j] <- 0
-  z[7,j] <- (y[8,j] + y[9,j] + y[11,j]) / (x[8] + x[9] + x[11])
-  z[8,j] <- 0
-  z[9,j] <- (y[10,j]) / (x[10])
-  z[10,j] <- 0
-  z[11,j] <- (y[12,j]) / (x[12])
-  z[12,j] <- (y[13,j]) / (x[13])
-  z[13,j] <- 0
-}
-# parameter priors
-alpha ~ dunif(0, 1)
-beta ~ dunif(0, 1)
-sigma ~ dgamma(1, gamma0)
-}
-"
-
-model.output="
-model {
-# sampling distribution
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i,j] ~ dnorm(x[i] * (beta + alpha * z[i,j]), 1 / sigma^2)
-  }
-  # connection to output
-  z[1, j] <- 0
-  z[2, j] <- y[1, j] / x[1]
-  z[3, j] <- y[2, j] / x[2]
-  z[4, j] <- y[3, j] / x[3]
-  z[5, j] <- y[2, j] / x[2]
-  z[6, j] <- y[5, j] / x[5]
-  z[7, j] <- y[1, j] / x[1]
-  z[8, j] <- y[7, j] / x[7]
-  z[9, j] <- y[7, j] / x[7]
-  z[10, j] <- y[9, j] / x[9]
-  z[11, j] <- y[7, j] / x[7]
-  z[12, j] <- y[11, j] / x[11]
-  z[13, j] <- y[12, j] / x[12]
-}
-# parameter priors
-alpha ~ dunif(0, 1)
-beta ~ dunif(0, 1)
-sigma ~ dgamma(1, gamma0)
-}
-"
-
-model.linear="
-model {
-# sampling distribution
-for (j in 1:m) {
-  for (i in 1:n) {
-    y[i,j] ~ dnorm(x[i] * beta[j], 1 / sigma^2)
-  }
-  beta[j] ~ dunif(0, 5)
-}
-# parameter priors
-alpha <- 0
-sigma ~ dgamma(1, gamma0)
-}
-"
+model = "output"
 
 data.bayes <- list(y = y,
                    x = x,
                    m = m,
-                   n = n,
-                   gamma0 = 2)
+                   n = n)
 
-model.smpl <- jags.model( file = textConnection(model.output),
+model.smpl <- jags.model(file = sprintf("%s.jags", model),
                          data = data.bayes)
 
 adapt(object = model.smpl,
       n.iter = 10^3)
 
+vars = c("beta", "sigma")
+if (model == "linear") {
+    vars = c(vars, "tau", "beta0")
+}
+
 N = 10^4
 n.thin = 10
 n.iter = N * n.thin
 output = jags.samples(model = model.smpl,
-variable.names = c("beta", "alpha", "sigma"),
+variable.names = vars,
 n.iter = n.iter,
 thin = n.thin,
 )
 
 names(output)
 
-plot(density(output$beta[,,1]))
 
-plot(density(output$alpha[,,1]))
+if (model == "linear") {
+    pdf(sprintf("images/%s-beta.pdf", model), width=7, height=5)
+    par(mfrow=c(5,4), mai=c(0.25,0.25,0.25,0.25))
+    for (j in 1:m) {
+        plot(density(output$beta[j,,1]), main=bquote(beta[.(j)]), xlim=c(0.2, 0.9))
+    }
+    dev.off()
+    
+    pdf(sprintf("images/%s-tau.pdf", model), width=7, height=5)
+    plot(density(output$tau[,,1]), main=bquote(tau))
+    dev.off()
+    pdf(sprintf("images/%s-beta0.pdf", model), width=7, height=5)
+    plot(density(output$beta0[,,1]), main=bquote(beta[0]))
+    dev.off()
+} else {
+    pdf(sprintf("images/%s-beta.pdf", model), width=7, height=5)
+    plot(density(output$beta[,,1]), main=expression(beta))
+    dev.off()
+}
 
 
-plot(density(output$sigma[,,1]))
+## pdf(sprintf("images/%s-alpha.pdf", model), width=7, height=5)
+## plot(density(output$alpha[,,1]), main=expression(alpha))
+## dev.off()
+
+
+pdf(sprintf("images/%s-sigma.pdf", model), width=7, height=5)
+plot(density(output$sigma[,,1]), main=expression(sigma))
+dev.off()
 
 ## plot(output$beta[,,1], type='l')
+
+main.ind <- c(0, 6, 10, 11, 12) + 1
+main.area <- x[main.ind]
+main.y <- y[main.ind, 1]
+main.xy <- data.frame(area=main.area, value=main.y)
+
+axis <- exp(seq(log(90), log(6000), length.out = 50))
+
+
+calc.y <- function(val) {
+    if (model == "linear") {
+        y.new <- output$beta[1,,1] * val + mapply(function(s) rnorm(1, 0, s), val * output$sigma[,,1])
+    }
+    return (quantile(y.new, c(0.025, 0.25, 0.5, 0.75, 0.975)))
+}
+
+
+intervals <- as.data.frame(t(mapply(calc.y, axis)))
+names(intervals) <- c("lower", "q1", "median", "q3", "upper")
+
+intervals$area <- axis
+
+pdf(sprintf("images/%s-mainb.pdf", model), width=7, height=4)
+ggplot(data=intervals) + geom_ribbon(mapping=aes(x=area, ymin=lower, ymax=upper), alpha = 0.3) + geom_line(mapping=aes(x=area, y=median), color="blue") + geom_point(data=main.xy, mapping=aes(x=area, y=value), color="red")
+dev.off()
+
+area <- x[7]
+sf <- y[7,]
+main.xy <- data.frame(year=2005:2024, value=as.numeric(sf))
+
+axis <- 2005:2024
+
+
+calc.y <- function(val) {
+    if (model == "linear") {
+    y.new <- output$beta[val-2004,,1] * area + mapply(function(s) rnorm(1, 0, s), area * output$sigma[,,1])
+    } else if (model == "inputs") {
+        z <- as.numeric(y[8,] + y[9,] + y[11,]) / (x[8] + x[9] + x[11])
+        y.new <- output$beta[,,1] * area * z[val-2004] + mapply(function(s) rnorm(1, 0, s), area * output$sigma[,,1])
+    } else if (model == "output") {
+        z <- as.numeric(y[1, ]) / x[1]
+        y.new <- output$beta[,,1] * area * z[val-2004] + mapply(function(s) rnorm(1, 0, s), area * output$sigma[,,1])
+    }
+    
+    return (quantile(y.new, c(0.025, 0.25, 0.5, 0.75, 0.975)))
+}
+
+
+intervals <- as.data.frame(t(mapply(calc.y, axis)))
+names(intervals) <- c("lower", "q1", "median", "q3", "upper")
+
+intervals$year <- axis
+
+pdf(sprintf("images/%s-node6.pdf", model), width=7, height=4)
+ggplot(data=intervals) + geom_ribbon(mapping=aes(x=year, ymin=lower, ymax=upper), alpha = 0.3) + geom_line(mapping=aes(x=year, y=median), color="blue") + geom_point(data=main.xy, mapping=aes(x=year, y=value), color="red")
+dev.off()
+
+if (model == "linear") {
+    linear.intervals <- intervals
+} else if (model == "inputs") {
+    inputs.intervals <- intervals
+} else if (model == "output") {
+    output.intervals <- intervals
+}
+
+linear.intervals$model <- "linear"
+inputs.intervals$model <- "inputs"
+output.intervals$model <- "output"
+
+all.intervals <- rbind(linear.intervals, inputs.intervals, output.intervals)
+
+pdf("images/combined-node6.pdf", width=7, height=4)
+ggplot(data=all.intervals) + geom_ribbon(mapping=aes(x=year, ymin=lower, ymax=upper, fill=model), alpha = 0.3) + geom_line(mapping=aes(x=year, y=median, color=model)) + geom_point(data=main.xy, mapping=aes(x=year, y=value), color="black")
+dev.off()

@@ -2,8 +2,23 @@ library(ggplot2)
 library(reshape2)
 
 
-df <- read.csv('node-attrs.csv')
+df <- read.csv('annual-means-long.csv')
 
+df$node <- as.factor(df$node)
+
+ggplot(df, mapping=aes(x=year, y=streamflow, color=node)) +
+    geom_line() + geom_point() +
+    scale_y_continuous(trans='log10')
+
+
+ggplot(df, mapping=aes(x=area, y=streamflow, color=node)) +
+    geom_point() + facet_wrap(~ year) + 
+    scale_y_continuous(trans='log10') +
+    scale_x_continuous(trans='log10')
+
+
+
+df <- read.csv('node-attrs.csv')
 cols <- mapply(function (i) {sprintf("sf_month_%d", i)}, 1:12)
 
 df.long <- melt(df, id.vars=c("name", "area", "INDEX"), measure.vars=cols, variable.name="month", value.name="streamflow")

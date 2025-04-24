@@ -1,0 +1,26 @@
+model {
+for (j in 1:m) {
+  # nodes <- c(1,2,3,5,7,9,11,12)
+  # since there isn't a way to do loop of indices
+  y[1,j] ~ dnorm(x[1] * beta * z[1,j], 1 / (x[1] * sigma)^2)
+  y[2,j] ~ dnorm(x[2] * beta * z[2,j], 1 / (x[2] * sigma)^2)
+  y[3,j] ~ dnorm(x[3] * beta * z[3,j], 1 / (x[3] * sigma)^2)
+  y[5,j] ~ dnorm(x[5] * beta * z[5,j], 1 / (x[5] * sigma)^2)
+  y[7,j] ~ dnorm(x[7] * beta * z[7,j], 1 / (x[7] * sigma)^2)
+  y[9,j] ~ dnorm(x[9] * beta * z[9,j], 1 / (x[9] * sigma)^2)
+  y[11,j] ~ dnorm(x[11] * beta * z[11,j], 1 / (x[11] * sigma)^2)
+  y[12,j] ~ dnorm(x[12] * beta * z[12,j], 1 / (x[12] * sigma)^2)
+  # connection to inputs
+  z[1,j] <- (y[2,j] + y[7,j]) / (x[2] + x[7])
+  z[2,j] <- (y[3,j] + y[5,j]) / (x[3] + x[5])
+  z[3,j] <- (y[4,j]) / (x[4])
+  z[5,j] <- (y[6,j]) / (x[6])
+  z[7,j] <- (y[8,j] + y[9,j] + y[11,j]) / (x[8] + x[9] + x[11])
+  z[9,j] <- (y[10,j]) / (x[10])
+  z[11,j] <- (y[12,j]) / (x[12])
+  z[12,j] <- (y[13,j]) / (x[13])
+}
+# parameter priors
+beta ~ dnorm(1, 0.1)
+sigma ~ dgamma(1, 2)
+}
