@@ -1,16 +1,49 @@
 library(ggplot2)
 library(rjags)
 
+MISSING = FALSE
 
 df <- read.csv('csvs/annual-means.csv')
 
+
 y_cols = mapply(function(y) sprintf("y_%d", y), 2005:2024)
 x <- df$area
-y <- df[y_cols]
+y.org <- df[y_cols]
 n <- dim(y)[1]
 m <- dim(y)[2]
 
-model = "output"
+y <- y.org
+
+## generate it once, and run 3 models for comparision
+if (MISSING) {
+    ## outlet node and leaf nodes cannot be interpolated with both
+    ## methods, so let's make syntetic gaps in the nodes with both
+    ## output and inputs
+    valid.nodes <- c(1, 2, 4, 6, 8, 10, 11) + 1
+    valid.nodes.count <- length(valid.nodes)
+    gaps.each <- 2
+    ## node, year, value
+    gaps <- matrix(nrow=valid.nodes.count * gaps.each, ncol=3)
+    ind <- 1
+    y <- y.org
+    for (i in valid.nodes) {
+        for (j in sample(1:m, gaps.each)) {
+            gaps[ind, ] <- c(i, j, y.org[i,j])
+            y[i,j] <- NA
+            ind <- ind+1
+        }
+    }
+
+    ## ## IF you overwrite y and need to recreate the gaps
+    ## for (i in 1:dim(gaps)[1]) {
+    ##     mi = gaps[i,][1]
+    ##     mj = gaps[i,][2]
+    ##     y[mi, mj] <- NA
+    ## }
+}
+
+## valid values: "basic", "linear", "output" and "inputs".
+model = "basic"
 
 data.bayes <- list(y = y,
                    x = x,
@@ -27,6 +60,9 @@ vars = c("beta", "sigma")
 if (model == "linear") {
     vars = c(vars, "tau", "beta0")
 }
+if (MISSING) {
+    vars = c(vars, "y")
+}
 
 N = 10^4
 n.thin = 10
@@ -38,6 +74,20 @@ thin = n.thin,
 )
 
 names(output)
+
+if (MISSING) {
+    pdf(sprintf("images/%s-missing.pdf", model), width=4, height=8)
+    par(mfrow=c(valid.nodes.count, gaps.each), mai=c(.25,.25,.25,.25))
+    for (i in 1:dim(gaps)[1]) {
+        mi = gaps[i,][1]
+        mj = gaps[i,][2]
+        mv = gaps[i,][3]
+        vals <- output$y[mi, mj, , 1]
+        plot(density(vals), main=bquote(y[.(mi) ~ ',' ~ .(mj+2004)]))
+        abline(v=mv, col="red")
+    }
+    dev.off()
+}
 
 
 if (model == "linear") {

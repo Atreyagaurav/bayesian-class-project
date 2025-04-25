@@ -26,7 +26,7 @@
   \end{beamercolorbox}
 }
 
-\title{Missing Variable Interference using Bayesian Approach on a River Network}
+\title{Missing Variable Inference using Bayesian Approach on a River Network}
 \author{Gaurav Atreya}
 \institute{
  University of Cincinnati}
@@ -54,6 +54,16 @@
   label         = \textrm{\textbf{JAGS Model}},
   labelposition = topline}
 
+\setminted[r]{
+  bgcolor=codebg,
+  breaklines=true,
+  linenos,
+  fontsize=\scriptsize,
+  frame         = single                   ,
+  framesep      = 1mm                      ,
+  label         = \textrm{\textbf{R Code}},
+  labelposition = topline}
+
 
 \begin{document}
 
@@ -71,7 +81,7 @@
     \item Directed,
     \item Acyclic,
     \item Planar, and
-    \item Weekly Connected.
+    \item Weakly Connected.
     \end{itemize}
 
     \column{0.5 \textwidth}
@@ -190,17 +200,17 @@ Data downloaded from United States Geological Survey (USGS) National Water Infor
   \begin{itemize}
   \item Linear Model with different coefficient for each year,
     \begin{equation*}
-      y_{i,j} = \beta_{j} \times x_{i} + \epsilon_{i,j}
+      y_{i,j} = (\beta_{j} + \epsilon_{i,j}) \times x_{i}
     \end{equation*}
     
   \item Linear Model with correlation to Input Nodes
     \begin{equation*}
-      y_{i,j} = (\beta + \alpha \times i_{i,j}) \times x_{i,j} + \epsilon_{i,j}
+      y_{i,j} = (\beta \times i_{i,j} + \epsilon_{i,j}) \times x_{i,j}
     \end{equation*}
     
   \item Linear Model with correlation to Output Node
     \begin{equation*}
-      y_{i,j} = (\beta + \alpha \times o_{i,j}) \times x_{i,j} + \epsilon_{i,j}
+      y_{i,j} = (\beta \times o_{i,j} + \epsilon_{i,j}) \times x_{i,j}
     \end{equation*}
 
   \item Correlation with Both ({\color{red}Abandoned} as RJAGS can't handle circular dependency)
@@ -219,7 +229,7 @@ Data downloaded from United States Geological Survey (USGS) National Water Infor
 
     \vspace{0.2cm}
     
-\inputminted{jags}{linear.jags}
+\inputminted{jags}{jags/linear.jags}
 \end{frame}
 
 \begin{frame}{Linear with Output}
@@ -235,12 +245,12 @@ Data downloaded from United States Geological Survey (USGS) National Water Infor
 
 \begin{frame}[containsverbatim]{Linear with Output}
 
-  \inputminted{jags}{output.jags}
+  \inputminted{jags}{jags/output.jags}
 \end{frame}
 
 
 \begin{frame}[containsverbatim]{Linear with Inputs}
-  \inputminted{jags}{inputs.jags}
+  \inputminted{jags}{jags/inputs.jags}
 \end{frame}
 
 \section{Results}
@@ -250,11 +260,11 @@ Data downloaded from United States Geological Survey (USGS) National Water Infor
   This is basically: $y_{i,j} = \beta \times x_{i} + \epsilon_{i,j}$
 
   That is, no hierchical model all years have same \(\beta\).
+  \pause{}
   
   \begin{columns}
     \column{0.45\textwidth}
     \includegraphics[width=\textwidth]{./images/basic-beta.pdf}
-    \pause
     
     \column{0.45\textwidth}
     \includegraphics[width=\textwidth]{./images/basic-sigma.pdf}
@@ -265,42 +275,128 @@ Data downloaded from United States Geological Survey (USGS) National Water Infor
 
 \begin{frame}{Linear}
   \begin{columns}
-    \column{0.45\textwidth}
+    \column{0.6\textwidth}
     \includegraphics[width=\textwidth]{./images/linear-beta.pdf}
     \pause
     
-    \column{0.45\textwidth}
+    \column{0.3\textwidth}
     \includegraphics[width=\textwidth]{./images/linear-sigma.pdf}
   \end{columns}
 \end{frame}
 
 
-\begin{frame}{Output}
+\begin{frame}{Output and Inputs}
   \begin{columns}
-    \column{0.45\textwidth}
-    \includegraphics[width=\textwidth]{./images/output-beta.pdf}
-    \pause
-    
+    \column{0.45\textwidth} \includegraphics[width=\textwidth]{./images/output-beta.pdf}    
     \column{0.45\textwidth}
     \includegraphics[width=\textwidth]{./images/output-sigma.pdf}
   \end{columns}
-\end{frame}
-
-
-\begin{frame}{Inputs}
+  
+    \pause
   \begin{columns}
     \column{0.45\textwidth}
     \includegraphics[width=\textwidth]{./images/inputs-beta.pdf}
-    \pause
     
     \column{0.45\textwidth}
     \includegraphics[width=\textwidth]{./images/inputs-sigma.pdf}
   \end{columns}
+  
+\end{frame}
+
+\begin{frame}{Example Data (Node 6)}
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    Linear\\
+    \includegraphics[width=0.9\textwidth]{./images/linear-node6.pdf}
+    \pause
+
+    Output\\
+    \includegraphics[width=0.9\textwidth]{./images/output-node6.pdf}
+
+    \pause
+    \column{0.5\textwidth}
+
+    Input\\
+    \includegraphics[width=0.9\textwidth]{./images/inputs-node6.pdf}
+
+    \pause
+    Combined\\
+    \includegraphics[width=1.05\textwidth,height=1.05in]{./images/combined-node6.pdf}
+  \end{columns} 
+\end{frame}
+
+
+\section{Missing Data}
+\begin{frame}[containsverbatim]{Simulated Missing Data}
+  \begin{columns}
+
+    \column{0.65\textwidth}
+\begin{minted}{r}
+valid.nodes <- c(1, 2, 4, 6, 8, 10, 11) + 1
+valid.nodes.count <- length(valid.nodes)
+gaps.each <- 2
+## node, year, value
+gaps <- matrix(
+         nrow=valid.nodes.count * gaps.each,
+         ncol=3
+        )
+ind <- 1
+y <- y.org
+for (i in valid.nodes) {
+  for (j in sample(1:m, gaps.each)) {
+    gaps[ind, ] <- c(i, j, y.org[i,j])
+    y[i,j] <- NA
+    ind <- ind+1
+  }
+}
+\end{minted}
+
+    \column{0.34\textwidth}
+    
+    The methods cannot be applied to all the nodes.
+
+    \vspace{0.4cm}
+    
+    \includegraphics[width=\textwidth]{./graphics/gaps.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Missing Data Inference}
+
+  \begin{columns}
+    \column{0.3\textwidth}
+      Linear
+    \includegraphics[width=\textwidth]{./images/linear-missing.pdf}
+    
+    \column{0.3\textwidth}
+      Output
+    \includegraphics[width=\textwidth]{./images/output-missing.pdf}
+    \column{0.3\textwidth}
+      Inputs
+    \includegraphics[width=\textwidth]{./images/inputs-missing.pdf}
+  \end{columns} 
 \end{frame}
 
 \section{Discussions}
 
-\begin{frame}{Comparision}
+\begin{frame}{Discussions}
+
+  Results:
+  \begin{itemize}
+  \item All methods seem to work well to represent the data.
+  \item Network based methods do not need a linear coefficient which could be a computational advantage.
+  \item Missing data inference were equivalent.
+  \end{itemize} 
+
+  \pause
+  Future Recommendations:
+  \begin{itemize}
+  \item Look into how much data can be missing to infer the rest of the data,
+  \item Try different distributions for residues,
+  \item Find a way to run inputs and outputs combined,
+  \item Try it with autocorrelated data instead of iid, etc.
+  \end{itemize}
 
 \end{frame}
 
